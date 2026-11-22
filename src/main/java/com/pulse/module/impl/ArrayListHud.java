@@ -4,31 +4,53 @@ import com.pulse.Theme;
 import com.pulse.module.Category;
 import com.pulse.module.Module;
 import com.pulse.module.ModuleManager;
+import com.pulse.module.setting.BooleanSetting;
+import com.pulse.util.Anim;
+import com.pulse.util.RenderUtil;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 
-import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ArrayListHud extends Module {
-    public ArrayListHud() { super("ArrayList", "List of enabled modules", Category.HUD); setEnabled(true); }
+    public final BooleanSetting showHud = add(new BooleanSetting("Show HUD mods", false));
+    private final Map<Module, Anim> anims = new HashMap<>();
+
+    private record Entry(Module m, float a, int w) {}
+
+    public ArrayListHud() { super("ArrayList", "Animated list of enabled modules", Category.HUD); setEnabled(true); }
 
     @Override
     public void onHudRender(DrawContext ctx, MinecraftClient mc) {
-        List<Module> list = ModuleManager.all().stream()
-                .filter(m -> m.isEnabled() && m != this)
-                .sorted(Comparator.comparingInt((Module m) -> mc.textRenderer.getWidth(m.name)).reversed())
-                .toList();
+        TextRenderer tr = mc.textRenderer;
+        List<Entry> list = new ArrayList<>();
+        for (Module m : ModuleManager.all()) {
+            if (m == this) continue;
+            if (!showHud.value && m.category == Category.HUD) continue;
+            Anim an = anims.computeIfAbsent(m, k -> new Anim(0f));
+            float a = an.to(m.isEnabled() ? 1f : 0f, 12f);
+            if (a < 0.02f) continue;
+            list.add(new Entry(m, a, tr.getWidth(m.name)));
+        }
+        list.sort((p, q) -> Integer.compare(q.w(), p.w()));
+
         int sw = ctx.getScaledWindowWidth();
-        int y = 2;
-        for (int i = 0; i < list.size(); i++) {
-            Module m = list.get(i);
-            int w = mc.textRenderer.getWidth(m.name);
-            int x = sw - w - 6;
-            ctx.fill(x - 2, y - 1, sw, y + 10, 0x90000000);
-            ctx.fill(sw - 2, y - 1, sw, y + 10, Theme.accent(i));
-            ctx.drawText(mc.textRenderer, m.name, x, y + 1, Theme.accent(i), true);
-            y += 11;
+        float y = 4;
+        int i = 0;
+        for (Entry e : list) {
+            int w = e.w();
+            int off = Math.round((1f - e.a()) * (w + 12));
+            int x = sw - w - 10 + off;
+            int iy = Math.round(y);
+            RenderUtil.roundRect(ctx, x - 4, iy, w + 14, 13, 3, Theme.alpha(Theme.BG, e.a()));
+            ctx.fill(sw - 2 + off, iy + 2, sw + off, iy + 11, Theme.alpha(Theme.accent(i), e.a()));
+            RenderUtil.text(ctx, tr, e.m().name, x, iy + 3, Theme.alpha(Theme.accent(i), e.a()), true);
+            y += 14 * e.a();
+            i++;
         }
     }
 }

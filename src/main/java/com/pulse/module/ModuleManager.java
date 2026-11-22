@@ -1,5 +1,6 @@
 package com.pulse.module;
 
+import com.pulse.Theme;
 import com.pulse.module.impl.*;
 
 import java.util.ArrayList;
@@ -15,6 +16,13 @@ public final class ModuleManager {
         MODULES.add(new Watermark());
         MODULES.add(new InfoHud());
         MODULES.add(new ArrayListHud());
+        MODULES.add(new KeystrokesHud());
+        MODULES.add(new ArmorHud());
+        MODULES.add(new TargetHud());
+        MODULES.add(new PotionHud());
+        MODULES.add(new Blur());
+        MODULES.add(new Colors());
+        Theme.colors = get(Colors.class);
     }
 
     public static List<Module> all() { return MODULES; }

@@ -1,7 +1,7 @@
 package com.pulse.module;
 
 public enum Category {
-    RENDER("Render"), HUD("HUD");
+    RENDER("Render"), HUD("HUD"), CLIENT("Client");
     public final String label;
     Category(String label) { this.label = label; }
 }

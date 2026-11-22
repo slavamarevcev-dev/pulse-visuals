@@ -15,8 +15,10 @@ public class GameRendererMixin {
     private void pulse$zoom(Camera camera, float tickProgress, boolean changingFov,
                             CallbackInfoReturnable<Float> cir) {
         Zoom zoom = ModuleManager.get(Zoom.class);
-        if (zoom != null && zoom.isEnabled()) {
-            cir.setReturnValue(cir.getReturnValue() / zoom.factor.f());
+        if (zoom == null) return;
+        float f = zoom.current();
+        if (Math.abs(f - 1f) > 0.001f) {
+            cir.setReturnValue(cir.getReturnValue() / f);
         }
     }
 }

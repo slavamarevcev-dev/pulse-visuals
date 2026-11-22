@@ -1,0 +1,7 @@
+{
+  "required": true,
+  "package": "com.pulse.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": ["MinecraftClientMixin", "EntityMixin", "GameRendererMixin"],
+  "injectors": { "defaultRequire": 1 }
+}
